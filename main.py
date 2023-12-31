@@ -7,25 +7,41 @@ import sys
 import logging
 import pyqtgraph as pg
 import numpy as np
-
+from PlotZ import plotZ
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         uic.loadUi('UI/mainwindow.ui', self)
-        #self.apply_stylesheet("ManjaroMix.qss")
+        self.apply_stylesheet("ManjaroMix.qss")
        # self.showMaximized()
+        init_connectors(self)
         self.initalize()
+        self.ZPlotter = plotZ(self.poles ,self.zeros, self.scale) 
         self.plot()
+    
 
     def paintEvent(self,event):
         painter = QPainter(self)
         painter.drawPixmap(QPoint(),self.pix)
 
+    def responsePlot(self, widgets:list, data:list, titles:list):
+        for index,widget in enumerate(widgets):
+            widget.canvas.axes.clear()
+            widget.canvas.axes.plot(data[index][0] , data[index][1] , color ="b")
+            widget.canvas.axes.set_title(titles[index])    
+            widget.canvas.draw()
+
     def processZPlotting(self):
       # TODO Call plotz
       # TODO Set labels for the mag / phase plots
-        pass
-      
+        magnitudePlotData = []
+        phasePlotData = []
+        magnitudePlotData = self.ZPlotter.plot_magnitude_response()
+        phasePlotData = self.ZPlotter.plot_phase_response()
+        widgets = [self.magGraphWidget , self.phaseGraphWidget]
+        data = [magnitudePlotData,phasePlotData]
+        titles= ["Magnitude Response" , "Phase Response"]
+        self.responsePlot(widgets,data,titles)
 
     
     def initalize(self):
@@ -45,8 +61,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.middleHeight = int(self.Height/2)
         self.middleWidth  = int(self.Width /2)
 
-    def clear(self):
-        pass 
+
 
     def plot(self):
         self.pix = QPixmap(self.unitCircleGraphWidget.rect().size())
@@ -72,15 +87,16 @@ class MainWindow(QtWidgets.QMainWindow):
             yx = int(self.scale*pole[1])
             x = int(xx + self.middleWidth)
             y = int(-yx + self.middleHeight)
-            painter.drawLine(x-self.sizePole, y-self.sizePole, x+self.sizePole, y+self.sizePole) # sol üstten sağ alta
-            painter.drawLine(x-self.sizePole, y+self.sizePole, x+self.sizePole, y-self.sizePole) # sol alttan sağ üste
+            painter.drawLine(x-self.sizePole, y-self.sizePole, x+self.sizePole, y+self.sizePole) 
+            painter.drawLine(x-self.sizePole, y+self.sizePole, x+self.sizePole, y-self.sizePole) 
         for zero in self.zeros:
             xx = int(self.scale*zero[0])
             yx = int(self.scale*zero[1])
             x = int(xx + self.middleWidth)
             y = int(-yx + self.middleHeight)
             painter.drawEllipse(x-int(self.sizeZero/2), y-int(self.sizeZero/2), self.sizeZero, self.sizeZero)      
-        self.update()      
+        self.update() 
+        self.processZPlotting()     
 
         
 
@@ -113,32 +129,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.deleteCheckBox.isChecked():
             self.delete([x/self.scale, y/self.scale], draw=True)
-        elif self.lookFor([x/self.scale, y/self.scale])==False:
+        elif self.search([x/self.scale, y/self.scale])==False:
             self.dragFlag = True
             self.add([x/self.scale, y/self.scale], "pole" if event.buttons()==Qt.LeftButton else "zero")   
 
-    def lookFor(self, pos):
+    def search(self, pos):
         for i in self.filterData[::-1]:
             if abs(i[0]-pos[0])<self.delRange and (abs(i[1]-pos[1])<self.delRange or abs(i[1]+pos[1])<self.delRange):
                 if self.poles.count(i)>0 or self.poles.count([i[0], -i[1]])>0 or self.zeros.count(i)>0 or self.zeros.count([i[0], -i[1]]):
                     return True
         return False
-    def delete(self, pos, draw=True):
-        for i in self.filterData[::-1]:
-            if abs(i[0]-pos[0])<self.delRange and (abs(i[1]-pos[1])<self.delRange or abs(i[1]+pos[1])<self.delRange):
-                if self.poles.count(i)>0 or self.poles.count([i[0], -i[1]])>0:
-                    if i[1]==0: self.poles.remove(i)
-                    else: self.poles.remove(i); self.poles.remove([i[0], -i[1]])
-                    self.statusBar.showMessage(f"Pole is deleted from ({round(i[0], 2)}, {round(i[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))})")
-                elif self.zeros.count(i)>0 or self.zeros.count([i[0], -i[1]]):
-                    if i[1]==0: self.zeros.remove(i)
-                    else: self.zeros.remove(i); self.zeros.remove([i[0], -i[1]])
-                    self.statusBar.showMessage(f"Zero is deleted from ({round(i[0], 2)}, {round(i[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))})")
-                else:
-                    print("[EXCEPTION] Something has gone wrong. Please contact the developer (contact e-mail: furieuxx13@gmail.com).")
-                self.filterData.remove(i)
-                break
-        if draw: self.draw()
+
         
     def add(self, pos, case, draw=True):
         if abs(pos[0])>self.middleWidth/self.scale or abs(pos[1])>self.middleHeight/self.scale:
@@ -148,15 +149,46 @@ class MainWindow(QtWidgets.QMainWindow):
         if -5/self.scale<pos[0]<5/self.scale: pos[0] = 0
         self.filterData.append(pos)
         if case=="pole":
-            if pos[1]==0: self.poles.append(pos)
+            print("a7a")
+            if pos[1]==0 or not self.addConjugateCheckBox.isChecked(): self.poles.append(pos)
             else: self.poles.append(pos); self.poles.append([pos[0], -pos[1]])
-            self.statusBar.showMessage(f"Pole is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
+           # self.statusBar.showMessage(f"Pole is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
         elif case=="zero":
-            if pos[1]==0: self.zeros.append(pos)
+            print("neek")
+            if pos[1]==0 or not self.addConjugateCheckBox.isChecked(): self.zeros.append(pos)
             else: self.zeros.append(pos); self.zeros.append([pos[0], -pos[-1]])
-            self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
-        if draw: self.draw()   
+          #  self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
+        if draw: self.plot()   
 
+    def delete(self, pos, draw=True):
+        for i in self.filterData[::-1]:
+            if abs(i[0]-pos[0])<self.delRange and (abs(i[1]-pos[1])<self.delRange or abs(i[1]+pos[1])<self.delRange):
+                if self.poles.count(i)>0 or self.poles.count([i[0], -i[1]])>0:
+                    if i[1]==0 or not self.addConjugateCheckBox.isChecked(): self.poles.remove(i)
+                    else: self.poles.remove(i); self.poles.remove([i[0], -i[1]])
+                   # self.statusBar.showMessage(f"Pole is deleted from ({round(i[0], 2)}, {round(i[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))})")
+                elif self.zeros.count(i)>0 or self.zeros.count([i[0], -i[1]]):
+                    if i[1]==0 or not self.addConjugateCheckBox.isChecked(): self.zeros.remove(i)
+                    else: self.zeros.remove(i); self.zeros.remove([i[0], -i[1]])
+                 #   self.statusBar.showMessage(f"Zero is deleted from ({round(i[0], 2)}, {round(i[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))})")
+                else:
+                    print("[EXCEPTION] Something has gone wrong. Please contact the developer (contact e-mail: furieuxx13@gmail.com).")
+                self.filterData.remove(i)
+                break
+        if draw: self.plot()
+
+    def clear(self):
+        self.initalize()
+        self.ZPlotter.setData(self.poles ,self.zeros, self.scale)
+        self.plot()    
+    def clearAllZeros(self):
+        self.zeros = []
+        self.ZPlotter.setData(self.poles ,self.zeros, self.scale) 
+        self.plot()     
+    def clearAllPoles(self):
+        self.poles = []
+        self.ZPlotter.setData(self.poles ,self.zeros, self.scale) 
+        self.plot()     
 
     def apply_stylesheet(self, stylesheet_path):
         stylesheet = QFile(stylesheet_path)
@@ -175,8 +207,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def init_connectors(self):
-    pass
-
+    self.clearAllBtn.clicked.connect(lambda:self.clear())
+    self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
+    self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
 
 
 def main():

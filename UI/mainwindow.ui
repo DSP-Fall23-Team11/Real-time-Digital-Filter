@@ -161,10 +161,10 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="magGraphWidget" native="true"/>
+        <widget class="MplWidget" name="magGraphWidget" native="true"/>
        </item>
        <item>
-        <widget class="QWidget" name="phaseGraphWidget" native="true"/>
+        <widget class="MplWidget" name="phaseGraphWidget" native="true"/>
        </item>
       </layout>
      </widget>
@@ -230,6 +230,14 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MplWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">MplWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
