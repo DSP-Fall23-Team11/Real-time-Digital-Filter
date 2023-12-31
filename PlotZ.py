@@ -6,6 +6,11 @@ class plotZ:
         self.poles = poles
         self.zeros = zeros
         self.scale = scale
+    def setData(self, poles ,zeros,scale):
+        self.poles = poles
+        self.zeros = zeros
+        self.scale = scale
+
     def yMax(self, array):
         if len(array)==0: return 0
         max = array[0][1]
@@ -15,7 +20,7 @@ class plotZ:
         return max
     def complex_dist(self, x, y):
         return ((y[1]-x[1])**2 + (y[0]-x[0])**2)**(1/2)
-    def plot_magnitude_response(self, sensitivity=0.005, color="r"):
+    def plot_magnitude_response(self, sensitivity=0.005, color="b"):
         points = []
         for point in arange(0, 2*pi, sensitivity):
             x = cos(point)
