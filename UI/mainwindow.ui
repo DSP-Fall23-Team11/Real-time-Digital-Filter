@@ -117,14 +117,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="clearAllPolesBtn">
+           <widget class="QPushButton" name="clearAllZerosBtn">
             <property name="text">
              <string>Clear Zeros</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="clearAllZerosBtn">
+           <widget class="QPushButton" name="clearAllPolesBtn">
             <property name="text">
              <string>Clear Poles</string>
             </property>

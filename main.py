@@ -57,7 +57,6 @@ class MainWindow(QtWidgets.QMainWindow):
     
         self.Height = int(self.unitCircleGraphWidget.height())
         self.Width = int(self.unitCircleGraphWidget.width())
-        print("dims",self.Width, self.Height)
         self.middleHeight = int(self.Height/2)
         self.middleWidth  = int(self.Width /2)
 
@@ -65,7 +64,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def plot(self):
         self.pix = QPixmap(self.unitCircleGraphWidget.rect().size())
-        print(self.unitCircleGraphWidget.rect().size())
         self.pix.fill(Qt.white)
         painter = QPainter(self.pix)
         painter.drawLine(0,self.middleHeight , self.Width, self.middleHeight)
@@ -149,12 +147,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if -5/self.scale<pos[0]<5/self.scale: pos[0] = 0
         self.filterData.append(pos)
         if case=="pole":
-            print("a7a")
             if pos[1]==0 or not self.addConjugateCheckBox.isChecked(): self.poles.append(pos)
             else: self.poles.append(pos); self.poles.append([pos[0], -pos[1]])
            # self.statusBar.showMessage(f"Pole is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
         elif case=="zero":
-            print("neek")
             if pos[1]==0 or not self.addConjugateCheckBox.isChecked(): self.zeros.append(pos)
             else: self.zeros.append(pos); self.zeros.append([pos[0], -pos[-1]])
           #  self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
@@ -172,7 +168,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     else: self.zeros.remove(i); self.zeros.remove([i[0], -i[1]])
                  #   self.statusBar.showMessage(f"Zero is deleted from ({round(i[0], 2)}, {round(i[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))})")
                 else:
-                    print("[EXCEPTION] Something has gone wrong. Please contact the developer (contact e-mail: furieuxx13@gmail.com).")
+                    print("Mama got an error")
                 self.filterData.remove(i)
                 break
         if draw: self.plot()
@@ -183,10 +179,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot()    
     def clearAllZeros(self):
         self.zeros = []
+        self.filterData = []
+        for  i in self.poles:
+          self.filterData.append(i)
         self.ZPlotter.setData(self.poles ,self.zeros, self.scale) 
         self.plot()     
     def clearAllPoles(self):
         self.poles = []
+        self.filterData = []
+        for  i in self.zeros:
+          self.filterData.append(i)
         self.ZPlotter.setData(self.poles ,self.zeros, self.scale) 
         self.plot()     
 

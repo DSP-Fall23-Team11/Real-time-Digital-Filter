@@ -38,7 +38,7 @@ class plotZ:
         range_x = x[0] - y[0]
         range_y = x[1] - y[1]
         return arctan(range_y/range_x)
-    def plot_phase_response(self, sensitivity=0.005, color="b"):
+    def plot_phase_response(self, sensitivity=0.005, color="r"):
         points = []
         for point in arange(0, 2*pi, sensitivity):
             x = cos(point)
