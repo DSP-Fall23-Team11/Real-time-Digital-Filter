@@ -2,11 +2,20 @@ from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QLabel, QVBoxLayout, QWidget, QSlider, QComboBox, QGraphicsRectItem,QGraphicsView,QGraphicsScene
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QColor,QMouseEvent,QPixmap, QPainter, QCursor
 from PyQt5.QtCore import Qt, QRectF,pyqtSignal,QFile,QTextStream
-from PyQt5.QtCore import Qt, QRectF, QObject, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, QRectF, QObject, pyqtSignal, QPoint ,QTimer, QFile, QTextStream
+from PyQt5.QtCore import QTimer, QFile, QTextStream
+from PyQt5 import QtWidgets, uic
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QTextEdit, QFileDialog, QScrollBar, QComboBox, QColorDialog, QCheckBox, QSlider, QMenu
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import QTimer, QFile, QTextStream
 import sys
 import logging
+import time
 import pyqtgraph as pg
 import numpy as np
+from speed import *
 from PlotZ import plotZ
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -18,6 +27,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initalize()
         self.ZPlotter = plotZ(self.poles ,self.zeros, self.scale) 
         self.plot()
+        #################################################
+        self.setMouseTracking(True)
+        self.padWidgetGraph.setMouseTracking(True)
+        self.padWidgetGraph.installEventFilter(self)
+        self.last_frame = None
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.calculate_speed)
+        self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
+        self.mouse_inside = False
     
 
     def paintEvent(self,event):
@@ -200,7 +218,30 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setStyleSheet(qss)
         else:
             print(f"Failed to open stylesheet file: {stylesheet_path}")    
+    def calculate_speed(self):
+        if self.last_frame is not None and self.mouse_inside:
+            new_frame = get_current_frame()
+            speed = new_frame.speed(self.last_frame)
+            if speed is not None:
+                print(f"Cursor Speed: {speed} pixels per second")
+            self.last_frame = new_frame
 
+    def eventFilter(self, source, event):
+        if source == self.padWidgetGraph:
+            if event.type() == QtCore.QEvent.Enter: 
+                # if event.type() == QtCore.QEvent.MouseMove:
+                    self.mouse_inside = True
+                    self.timer.start(self.timer_interval)
+                    self.last_frame = get_current_frame()
+            elif event.type() == QtCore.QEvent.Leave:
+                self.mouse_inside = False
+                self.timer.stop()
+            elif event.type() == QtCore.QEvent.MouseMove:
+                self.x = event.x()
+                self.y = event.y()
+                # print(f"Mouse Coordinates:({self.x}, {self.y})")
+                # print("Mouse is over the widget and within its boundaries")
+        return super().eventFilter(source, event)
 
 
 
