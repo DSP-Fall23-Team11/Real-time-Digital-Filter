@@ -22,7 +22,7 @@ class plotZ:
         return ((y[1]-x[1])**2 + (y[0]-x[0])**2)**(1/2)
     def plot_magnitude_response(self, sensitivity=0.005, color="b"):
         points = []
-        for point in arange(0, 2*pi, sensitivity):
+        for point in arange(0, 1*pi, sensitivity):
             x = cos(point)
             y = sin(point)
             a = 1
@@ -33,14 +33,14 @@ class plotZ:
                 if temp!=0: a /= temp
                 else: a /= 1e-400
             points.append(a)
-        return [arange(0, 2*pi, sensitivity), points]
+        return [arange(0, 1*pi, sensitivity), points]
     def phase_amount(self, x, y):
         range_x = x[0] - y[0]
         range_y = x[1] - y[1]
         return arctan(range_y/range_x)
     def plot_phase_response(self, sensitivity=0.005, color="r"):
         points = []
-        for point in arange(0, 2*pi, sensitivity):
+        for point in arange(0, 1*pi, sensitivity):
             x = cos(point)
             y = sin(point)
             a = 0
@@ -49,4 +49,4 @@ class plotZ:
             for pole in self.poles:
                 a -= self.phase_amount(pole, [x, y])
             points.append(a)
-        return [arange(0, 2*pi, sensitivity), points]
+        return [arange(0, 1*pi, sensitivity), points]
