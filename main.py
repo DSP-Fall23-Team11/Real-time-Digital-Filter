@@ -40,6 +40,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.calculate_speed)
         self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
         self.mouse_inside = False
+        self.allPassComboBox.setEditable(True)
 
         self.x = 0
         self.y = 0
@@ -203,6 +204,13 @@ class MainWindow(QtWidgets.QMainWindow):
           #  self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
         if draw: self.plot()   
 
+    def addFilter(self):
+        filter_value = float(self.allPassComboBox.currentText())
+        self.allPassLibrary.addItem(str(filter_value))
+        
+            
+
+
     def delete(self, pos, draw=True):
         for i in self.filterData[::-1]:
             if abs(i[0]-pos[0])<self.delRange and (abs(i[1]-pos[1])<self.delRange or abs(i[1]+pos[1])<self.delRange):
@@ -315,6 +323,8 @@ def init_connectors(self):
     self.clearAllBtn.clicked.connect(lambda:self.clear())
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
+    self.addButton.clicked.connect(lambda:self.addFilter())
+    # self.AllPassLibrary.
 
 
 def main():

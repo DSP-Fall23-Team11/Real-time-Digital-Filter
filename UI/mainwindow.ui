@@ -269,7 +269,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="allPassLabel">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -283,7 +283,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="allPassComboBox">
          <property name="maximumSize">
           <size>
            <width>150</width>
@@ -293,7 +293,25 @@
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="listWidget"/>
+        <widget class="QListWidget" name="allPassLibrary"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QPushButton" name="addButton">
+           <property name="text">
+            <string>Add</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="applyFilter">
+           <property name="text">
+            <string>Apply Filter</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_5">
