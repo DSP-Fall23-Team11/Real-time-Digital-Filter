@@ -17,6 +17,8 @@ import pyqtgraph as pg
 import numpy as np
 from speed import *
 from PlotZ import plotZ
+
+from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -36,6 +38,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.calculate_speed)
         self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
         self.mouse_inside = False
+
+        self.x = 0
+        self.y = 0
+        self.speed = 0
+
+        self.generatedSignal = Signal()
+
     
 
     def paintEvent(self,event):
@@ -217,14 +226,33 @@ class MainWindow(QtWidgets.QMainWindow):
             qss = stream.readAll()
             self.setStyleSheet(qss)
         else:
-            print(f"Failed to open stylesheet file: {stylesheet_path}")    
+            print(f"Failed to open stylesheet file: {stylesheet_path}")
+
+    def setSignalPoint(self,speed,amp):
+        self.generatedSignal.appendAmplitude(amp)
+        self.generatedSignal.appedFrequency(speed/200)
+        self.generatedSignal.appendYAxis()    
     def calculate_speed(self):
         if self.last_frame is not None and self.mouse_inside:
             new_frame = get_current_frame()
             speed = new_frame.speed(self.last_frame)
-            if speed is not None:
+            if speed is not None and speed > 0:
                 print(f"Cursor Speed: {speed} pixels per second")
+                self.speed = speed
+                self.setSignalPoint(self.speed,self.x)
+                self.plotSignal()
             self.last_frame = new_frame
+
+            
+
+            # print("signal points", self.generatedSignal.yAxis)
+            
+
+            
+    def plotSignal(self):
+        self.inputSignalGraph.clear()
+        self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
+
 
     def eventFilter(self, source, event):
         if source == self.padWidgetGraph:
@@ -239,6 +267,7 @@ class MainWindow(QtWidgets.QMainWindow):
             elif event.type() == QtCore.QEvent.MouseMove:
                 self.x = event.x()
                 self.y = event.y()
+
                 # print(f"Mouse Coordinates:({self.x}, {self.y})")
                 # print("Mouse is over the widget and within its boundaries")
         return super().eventFilter(source, event)
