@@ -44,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.speed = 0
 
         self.viewBox =self.inputSignalGraph.getViewBox()
-
+        self.initalizeGraph()
         self.generatedSignal = Signal()
 
         
@@ -253,10 +253,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # print("signal points", self.generatedSignal.yAxis)
             
     def initalizeGraph(self):
-        self.viewBox.setXRange(0, 0.3)
+        self.viewBox.setXRange(0, 0.2)
         self.viewBox.setYRange(-300, 300)
             
     def plotSignal(self):
+        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.19):
+            self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.18, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
         self.inputSignalGraph.clear()
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
 
