@@ -36,11 +36,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.calculate_speed)
         self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
         self.mouse_inside = False
-        # Initialize cosine plotting
+        #############################################
         self.cosine_plot_widget = self.inputSignalGraph
         self.cosine_plot_data = {'x': [], 'y': []}
         self.cosine_curve = self.cosine_plot_widget.plot(pen='g')
-    
+      # Initialize total list and index
+        self.total = self.generate_cosine_data(10000)
+        self.idx = 0    
 
     def paintEvent(self,event):
         painter = QPainter(self)
@@ -223,6 +225,10 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             print(f"Failed to open stylesheet file: {stylesheet_path}")    
    
+    def generate_cosine_data(self, num_points):
+        t_values = np.linspace(0, 10, num_points)
+        return {'x': t_values.tolist(), 'y': (10 * np.cos(2 * t_values)).tolist()}
+
     def calculate_speed(self):
         if self.last_frame is not None and self.mouse_inside:
             new_frame = get_current_frame()
@@ -230,7 +236,18 @@ class MainWindow(QtWidgets.QMainWindow):
             if speed is not None:
                 print(f"Cursor Speed: {speed} pixels per second")
                 self.update_cosine_plot(speed)
-            self.last_frame = new_frame
+            self.last_frame = new_frame 
+
+    # def eventFilter(self, source, event):
+    #     if source == self.customSignalPaddingWidget:
+    #         if event.type() == QtCore.QEvent.Enter:
+    #             self.mouse_inside = True
+    #             self.timer.start(self.timer_interval)
+    #             self.last_frame = get_current_frame()
+    #         elif event.type() == QtCore.QEvent.Leave:
+    #             self.mouse_inside = False
+    #             self.timer.stop()
+    #     return super().eventFilter(source, event)
     def eventFilter(self, source, event):
         if source == self.padWidgetGraph:
             if event.type() == QtCore.QEvent.Enter: 
@@ -246,28 +263,22 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.y = event.y()
                 # print(f"Mouse Coordinates:({self.x}, {self.y})")
                 # print("Mouse is over the widget and within its boundaries")
-        return super().eventFilter(source, event)
+        return super().eventFilter(source, event)        
 
     def update_cosine_plot(self, speed):
-        frequency = 0.01  # Base frequency
-        speed_factor = max(min(speed / 500.0, 1.0), 0.1)  # Adjust speed between 0.1 and 1.0
-        frequency *= speed_factor
+        if speed < 500:
+            num_points_to_append = 10
+        else:
+            num_points_to_append = 100
 
-        # Determine the number of points to add based on speed
-        num_points = int(100 * speed_factor)  # Vary the number of points based on speed
-        if num_points < 10:
-            num_points = 10  # Minimum number of points
-
-        # Generate new points for the cosine signal and append to existing data
-        t = time.time()
-        x = np.linspace(t, t + 2 * np.pi / frequency, num_points)
-        y = np.cos(frequency * (x - t))
-        self.cosine_plot_data['x'].extend(x.tolist())
-        self.cosine_plot_data['y'].extend(y.tolist())
+        # Append points from total to the plotting list
+        end_idx = min(self.idx + num_points_to_append, len(self.total['x']))
+        self.cosine_plot_data['x'].extend(self.total['x'][self.idx:end_idx])
+        self.cosine_plot_data['y'].extend(self.total['y'][self.idx:end_idx])
+        self.idx = end_idx
+        # Update the plot
         self.cosine_curve.setData(self.cosine_plot_data['x'], self.cosine_plot_data['y'])
-
-
-
+        
 
 
 def init_connectors(self):
