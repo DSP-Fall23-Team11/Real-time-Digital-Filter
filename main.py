@@ -41,8 +41,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cosine_plot_data = {'x': [], 'y': []}
         self.cosine_curve = self.cosine_plot_widget.plot(pen='g')
       # Initialize total list and index
+        self.offset = 0
         self.total = self.generate_cosine_data(10000)
         self.idx = 0    
+      
 
     def paintEvent(self,event):
         painter = QPainter(self)
@@ -226,7 +228,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print(f"Failed to open stylesheet file: {stylesheet_path}")    
    
     def generate_cosine_data(self, num_points):
-        t_values = np.linspace(0, 10, num_points)
+        t_values = np.linspace(0+self.offset, 30+self.offset, num_points)
         return {'x': t_values.tolist(), 'y': (10 * np.cos(2 * t_values)).tolist()}
 
     def calculate_speed(self):
@@ -269,13 +271,18 @@ class MainWindow(QtWidgets.QMainWindow):
         if speed < 500:
             num_points_to_append = 10
         else:
-            num_points_to_append = 100
-
+            num_points_to_append = 100 
         # Append points from total to the plotting list
+        if(self.idx >=10000):
+            self.idx = 0
+            self.offset+=30
+            self.total = self.generate_cosine_data(10000)
+
         end_idx = min(self.idx + num_points_to_append, len(self.total['x']))
         self.cosine_plot_data['x'].extend(self.total['x'][self.idx:end_idx])
         self.cosine_plot_data['y'].extend(self.total['y'][self.idx:end_idx])
         self.idx = end_idx
+
         # Update the plot
         self.cosine_curve.setData(self.cosine_plot_data['x'], self.cosine_plot_data['y'])
         
