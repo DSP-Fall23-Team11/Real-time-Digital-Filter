@@ -2,7 +2,7 @@ import numpy as np
 
 class Signal:
   def __init__(self):
-    self.xAxis = np.linspace(0, 100, 100, endpoint=False)
+    self.xAxis = np.arange(0, 10, 0.001)
     self.yAxis = []
     self.amplitude = []
     self.frequency = []
@@ -21,6 +21,11 @@ class Signal:
     # print("frequency: ", self.frequency[index])
     # print("freqLen: ", len(self.frequency))
     # print("xAxis: ", self.xAxis[index])
-    self.yAxis.append(np.cos(2 * np.pi * self.frequency[index] * self.xAxis[index]) * self.amplitude[index])
+    print("cos: ", np.cos(2 * np.pi * self.frequency[index] * self.xAxis[index]))
+    print("amp: ", self.amplitude[index])
+
+    
+    
+    self.yAxis.append(np.cos(self.frequency[index] * self.xAxis[index]) * self.amplitude[index])
 
   

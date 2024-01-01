@@ -43,7 +43,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.y = 0
         self.speed = 0
 
+        self.viewBox =self.inputSignalGraph.getViewBox()
+
         self.generatedSignal = Signal()
+
+        
 
     
 
@@ -237,7 +241,8 @@ class MainWindow(QtWidgets.QMainWindow):
             new_frame = get_current_frame()
             speed = new_frame.speed(self.last_frame)
             if speed is not None and speed > 0:
-                print(f"Cursor Speed: {speed} pixels per second")
+                # print(f"Cursor Speed: {speed} pixels per second")
+                # print(f"Cursor Position: ({self.x}, {self.y})")
                 self.speed = speed
                 self.setSignalPoint(self.speed,self.x)
                 self.plotSignal()
@@ -247,7 +252,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # print("signal points", self.generatedSignal.yAxis)
             
-
+    def initalizeGraph(self):
+        self.viewBox.setXRange(0, 0.3)
+        self.viewBox.setYRange(-300, 300)
             
     def plotSignal(self):
         self.inputSignalGraph.clear()
