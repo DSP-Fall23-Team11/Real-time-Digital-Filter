@@ -17,6 +17,7 @@ import pyqtgraph as pg
 import numpy as np
 from speed import *
 from PlotZ import plotZ
+from scipy.signal import zpk2tf, lfilter
 
 from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
@@ -25,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         uic.loadUi('UI/mainwindow.ui', self)
         self.apply_stylesheet("ManjaroMix.qss")
-        self.showMaximized()
+        # self.showMaximized()
         init_connectors(self)
         self.initalize()
         self.ZPlotter = plotZ(self.poles ,self.zeros, self.scale) 
@@ -45,7 +46,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.speed = 0
 
         self.viewBox =self.inputSignalGraph.getViewBox()
+        self.viewBox1 =self.filteredSignalGraph.getViewBox()
         self.initalizeGraph()
+
         self.generatedSignal = Signal()
 
         
@@ -128,6 +131,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update() 
         self.processZPlotting()     
 
+    def filter_real_time_signal(self, input_signal):
+        # Use the ZeroPole filter equation to filter the input signal
+        # print(self.zeros)
+        zeros = [complex(z[0], z[1]) for z in self.zeros]
+        poles = [complex(p[0], p[1]) for p in self.poles]
+
+        # zeros_poly = np.poly(np.array(self.zeros)[:, 0] + 1j * np.array(self.zeros)[:, 1])
+        # filtered_signal = lfilter([1], zeros_poly, input_signal, axis=-1, zi=None)
+        numerator, denominator = zpk2tf(zeros,poles,1)
+        filtered_signal_y = np.real(lfilter(numerator, denominator, input_signal.copy()))
+        return filtered_signal_y
         
 
     def mouseReleaseEvent(self, event):
@@ -172,6 +186,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         
     def add(self, pos, case, draw=True):
+        self.filteredSignalGraph.clear()
         if abs(pos[0])>self.middleWidth/self.scale or abs(pos[1])>self.middleHeight/self.scale:
             self.dragFlag = False
             return
@@ -256,12 +271,20 @@ class MainWindow(QtWidgets.QMainWindow):
     def initalizeGraph(self):
         self.viewBox.setXRange(0, 0.2)
         self.viewBox.setYRange(-300, 300)
+        self.viewBox1.setXRange(0, 0.2)
+        self.viewBox1.setYRange(-300, 300)
             
     def plotSignal(self):
         if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999):
             self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
+            self.viewBox1.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
+        
         self.inputSignalGraph.clear()
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
+        filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis)
+        magnitude = np.abs(filteredSignal)
+        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],magnitude,pen="r")
+        # self.filter_real_time_signal(self.generatedSignal.yAxis)
 
 
     def eventFilter(self, source, event):
