@@ -22,9 +22,10 @@ from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        
         uic.loadUi('UI/mainwindow.ui', self)
         self.apply_stylesheet("ManjaroMix.qss")
-       # self.showMaximized()
+        self.showMaximized()
         init_connectors(self)
         self.initalize()
         self.ZPlotter = plotZ(self.poles ,self.zeros, self.scale) 
@@ -257,8 +258,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.viewBox.setYRange(-300, 300)
             
     def plotSignal(self):
-        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.19):
-            self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.18, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
+        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999):
+            self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
         self.inputSignalGraph.clear()
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
 
