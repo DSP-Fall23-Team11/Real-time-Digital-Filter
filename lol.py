@@ -20,7 +20,7 @@ modified_signal = original_signal * np.exp(1j * np.angle(all_pass_response))
 # Plot the original and modified signals
 plt.figure(figsize=(10, 4))
 plt.subplot(2, 1, 1)
-plt.plot(omega_values, np.abs(original_signal)+1, label='Original Magnitude')
+plt.plot(omega_values, np.abs(original_signal), label='Original Magnitude')
 plt.plot(omega_values, np.abs(modified_signal), label='Modified Magnitude')
 plt.xlabel('Frequency')
 plt.ylabel('Magnitude')

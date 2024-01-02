@@ -15,11 +15,12 @@ from sympy import symbols, I, E, conjugate, Abs
 import sys
 import logging
 import time
+from AllPass import *
 import pyqtgraph as pg
 import numpy as np
 from speed import *
 from PlotZ import plotZ
-from scipy.signal import zpk2tf, lfilter
+from scipy.signal import zpk2tf, lfilter,freqz_zpk
 
 from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
@@ -44,7 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mouse_inside = False
         self.modifiedSignal=[]
         self.allPassComboBox.setEditable(True)
-
+        
         self.x = 0
         self.y = 0
         self.speed = 0
@@ -137,18 +138,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update() 
         self.processZPlotting()     
 
-    def filter_real_time_signal(self, input_signal):
-        # Use the ZeroPole filter equation to filter the input signal
-        # print(self.zeros)
-        zeros = [complex(z[0], z[1]) for z in self.zeros]
-        poles = [complex(p[0], p[1]) for p in self.poles]
-
-        # zeros_poly = np.poly(np.array(self.zeros)[:, 0] + 1j * np.array(self.zeros)[:, 1])
-        # filtered_signal = lfilter([1], zeros_poly, input_signal, axis=-1, zi=None)
-        numerator, denominator = zpk2tf(zeros,poles,1)
-        filtered_signal_y = np.real(lfilter(numerator, denominator, input_signal.copy()))
-        return filtered_signal_y
-        
+    
 
     def mouseReleaseEvent(self, event):
         self.dragFlag = False
@@ -212,6 +202,22 @@ class MainWindow(QtWidgets.QMainWindow):
     def addFilter(self):
         filter_value = complex(self.allPassComboBox.currentText())
         self.allPassLibrary.addItem(str(filter_value))
+    
+    def filter_real_time_signal(self, input_signal,allPassZero=None,allPassPole=None):
+        # Use the ZeroPole filter equation to filter the input signal
+        # print(self.zeros)
+        zeros = [complex(z[0], z[1]) for z in self.zeros]
+        poles = [complex(p[0], p[1]) for p in self.poles]
+        if allPassZero is not None and allPassPole is not None:
+            zeros.append(allPassZero)
+            poles.append(allPassPole)
+
+        # zeros_poly = np.poly(np.array(self.zeros)[:, 0] + 1j * np.array(self.zeros)[:, 1])
+        # filtered_signal = lfilter([1], zeros_poly, input_signal, axis=-1, zi=None)
+        numerator, denominator = zpk2tf(zeros,poles,1)
+        filtered_signal_y = np.real(lfilter(numerator, denominator, input_signal.copy()))
+        return filtered_signal_y
+        
               
     
     def plotAllPassResponse(self,a):
@@ -223,10 +229,30 @@ class MainWindow(QtWidgets.QMainWindow):
             Hap = (np.exp(-1j * xValue) - np.conjugate(a)) / (1 - a * np.exp(-1j * xValue))
             yAxis.append(np.angle(Hap))         
         self.allPassResponse.plot(x_values, yAxis, pen="b")
-        self.modifiedSignal= self.generatedSignal.yAxis*np.exp(1j * np.angle(yAxis))
-        
+        # self.modifiedSignal= self.generatedSignal.yAxis*np.exp(1j * np.angle(yAxis))
+        zeros = [complex(z[0], z[1]) for z in self.zeros]
+        poles = [complex(p[0], p[1]) for p in self.poles]
+        zeroF = 1/np.conj(a)
+        poleF = a
+        zeros.append(zeroF)
+        poles.append(poleF)
+        w,response = freqz_zpk(zeros,poles,1)
+        magnitude = 20 * np.log10(np.abs(response))
+        phase = np.unwrap(np.angle(response))
+        widgets = [self.magGraphWidget , self.phaseGraphWidget]
+        data = [magnitude,phase]
+        titles = ["Magnitude Response" , "Phase Response"]
+        for index ,widget in enumerate(widgets):
+            widget.canvas.axes.clear()
+            widget.canvas.axes.plot(w , data[index] , color ="b")
+            widget.canvas.axes.set_title(titles[index])    
+            widget.canvas.draw()
+        self.filteredSignalGraph.clear()
+        self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
+        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
+        #lets apply on signal!
 
-    
+
 
     def delete(self, pos, draw=True):
         for i in self.filterData[::-1]:
