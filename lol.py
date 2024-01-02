@@ -1,40 +1,36 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import signal
 
-# Zeros specified as an array
-zeros = np.array([1, 2, -1 + 1j, -1 - 1j])
+# Original signal with zeros and poles
+original_signal = [1, 2, 3, 1, 2, 1, 5, 1, 7, 0, 1, 2]
 
-# Poles (for illustration purposes)
-poles = [0, -1]  # Replace with your specific poles
+# Parameters for the all-pass filter
+a = 0.9  # Adjust the value of 'a' based on your design
 
-# Create the transfer function
-numerator, denominator = signal.zpk2tf(zeros, poles, 1.0)
+# Calculate the transfer function of the all-pass filter
+def all_pass_filter(omega, a):
+    return (np.exp(-1j * omega) - np.conjugate(a)) / (1 - a * np.exp(-1j * omega))
 
-# Create the filter
-sys = signal.TransferFunction(numerator, denominator)
+# Apply the all-pass filter to the signal
+omega_values = np.linspace(0, np.pi, len(original_signal))
+all_pass_response = all_pass_filter(omega_values, a)
 
-# Generate a sample input signal
-time = np.linspace(0, 1, 1000, endpoint=False)
-input_signal = np.sin(2 * np.pi * 5 * time) + 0.5 * np.random.normal(size=len(time))
+modified_signal = original_signal * np.exp(1j * np.angle(all_pass_response))
 
-# Apply the filter to the input signal
-output_signal = signal.lfilter(numerator, denominator, input_signal)
-
-# Plot the original and filtered signals
-plt.figure(figsize=(10, 6))
+# Plot the original and modified signals
+plt.figure(figsize=(10, 4))
 plt.subplot(2, 1, 1)
-plt.plot(time, input_signal, label='Original Signal')
-plt.title('Original Signal')
-plt.xlabel('Time')
-plt.ylabel('Amplitude')
+plt.plot(omega_values, np.abs(original_signal)+1, label='Original Magnitude')
+plt.plot(omega_values, np.abs(modified_signal), label='Modified Magnitude')
+plt.xlabel('Frequency')
+plt.ylabel('Magnitude')
 plt.legend()
 
 plt.subplot(2, 1, 2)
-plt.plot(time, output_signal, label='Filtered Signal')
-plt.title('Filtered Signal')
-plt.xlabel('Time')
-plt.ylabel('Amplitude')
+plt.plot(omega_values, np.angle(original_signal), label='Original Phase')
+plt.plot(omega_values, np.angle(modified_signal), label='Modified Phase')
+plt.xlabel('Frequency')
+plt.ylabel('Phase')
 plt.legend()
 
 plt.tight_layout()

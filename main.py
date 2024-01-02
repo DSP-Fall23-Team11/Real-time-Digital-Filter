@@ -10,6 +10,8 @@ from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QTextEdit, QFileDialog, QScrollBar, QComboBox, QColorDialog, QCheckBox, QSlider, QMenu
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QTimer, QFile, QTextStream
+from sympy.functions import arg
+from sympy import symbols, I, E, conjugate, Abs
 import sys
 import logging
 import time
@@ -40,6 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.calculate_speed)
         self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
         self.mouse_inside = False
+        self.modifiedSignal=[]
         self.allPassComboBox.setEditable(True)
 
         self.x = 0
@@ -95,6 +98,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.Width = int(self.unitCircleGraphWidget.width())
         self.middleHeight = int(self.Height/2)
         self.middleWidth  = int(self.Width /2)
+
+        
 
 
 
@@ -205,11 +210,23 @@ class MainWindow(QtWidgets.QMainWindow):
         if draw: self.plot()   
 
     def addFilter(self):
-        filter_value = float(self.allPassComboBox.currentText())
+        filter_value = complex(self.allPassComboBox.currentText())
         self.allPassLibrary.addItem(str(filter_value))
+              
+    
+    def plotAllPassResponse(self,a):
+        a = complex(a)
+        self.allPassResponse.clear()
+        x_values = np.linspace(0, np.pi, 1000)
+        yAxis = []
+        for xValue in x_values:
+            Hap = (np.exp(-1j * xValue) - np.conjugate(a)) / (1 - a * np.exp(-1j * xValue))
+            yAxis.append(np.angle(Hap))         
+        self.allPassResponse.plot(x_values, yAxis, pen="b")
+        self.modifiedSignal= self.generatedSignal.yAxis*np.exp(1j * np.angle(yAxis))
         
-            
 
+    
 
     def delete(self, pos, draw=True):
         for i in self.filterData[::-1]:
@@ -291,7 +308,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
         filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis)
         magnitude = np.abs(filteredSignal)
-        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],magnitude,pen="r")
+        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal,pen="r")
         # self.filter_real_time_signal(self.generatedSignal.yAxis)
 
 
@@ -324,6 +341,8 @@ def init_connectors(self):
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
     self.addButton.clicked.connect(lambda:self.addFilter())
+    self.allPassLibrary.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLibrary.currentItem().text()))
+    self.applyFilter.clicked.connect(lambda: self.applyallPassFilter())
     # self.AllPassLibrary.
 
 

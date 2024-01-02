@@ -329,7 +329,7 @@
           </widget>
          </item>
          <item>
-          <widget class="PlotWidget" name="graphicsView">
+          <widget class="PlotWidget" name="allPassResponse">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
