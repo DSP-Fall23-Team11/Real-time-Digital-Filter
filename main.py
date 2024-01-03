@@ -57,8 +57,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.generatedSignal = Signal()
 
-              
-
+        self.initalizeAllPassLibrary()
+        
    
 
 
@@ -221,10 +221,25 @@ class MainWindow(QtWidgets.QMainWindow):
           #  self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
         if draw: self.plot()   
 
-    def addFilter(self):
-        filter_value = complex(self.allPassComboBox.currentText())
-        self.allPassLibrary.addItem(str(filter_value))
+    # def addFilter(self):
+    #     filter_value = complex(self.allPassComboBox.currentText())
+    #     self.allPassLibrary.addItem(str(filter_value))
     
+    def initalizeAllPassLibrary(self):
+        defaultAllPassLib = ['0.5','5','1','100']
+        for index, a in enumerate(defaultAllPassLib):
+            filter_value = complex(a)
+            self.allPassLibrary.addItem(str(filter_value))
+    
+
+    def filterLib(self):
+        text = self.allPassComboBox.currentText()
+        if self.allPassComboBox.findText(text) == -1:
+            self.allPassComboBox.addItem(text)
+            filter_value = complex(text)
+            self.allPassLibrary.addItem(str(filter_value))
+
+
     def filter_real_time_signal(self, input_signal,allPassZero=None,allPassPole=None):
         # Use the ZeroPole filter equation to filter the input signal
         # print(self.zeros)
@@ -270,7 +285,7 @@ class MainWindow(QtWidgets.QMainWindow):
             widget.canvas.axes.set_title(titles[index])    
             widget.canvas.draw()
         self.filteredSignalGraph.clear()
-        self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
+        # self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
         self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
         #lets apply on signal!
 
@@ -297,6 +312,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.initalize()
         self.ZPlotter.setData(self.poles ,self.zeros, self.scale)
         self.plot()    
+   
     def clearAllZeros(self):
         self.zeros = []
         self.filterData = []
@@ -304,6 +320,7 @@ class MainWindow(QtWidgets.QMainWindow):
           self.filterData.append(i)
         self.ZPlotter.setData(self.poles ,self.zeros, self.scale) 
         self.plot()     
+   
     def clearAllPoles(self):
         self.poles = []
         self.filterData = []
@@ -325,6 +342,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.generatedSignal.appendAmplitude(amp)
         self.generatedSignal.appedFrequency(speed/200)
         self.generatedSignal.appendYAxis()    
+    
+    
     def calculate_speed(self):
         if self.last_frame is not None and self.mouse_inside:
             new_frame = get_current_frame()
@@ -336,10 +355,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.setSignalPoint(self.speed,self.x)
                 self.plotSignal()
             self.last_frame = new_frame
-
             
 
-            # print("signal points", self.generatedSignal.yAxis)
             
     def initalizeGraph(self):
         self.viewBox.setXRange(0, 0.2)
@@ -384,9 +401,11 @@ def init_connectors(self):
     self.clearAllBtn.clicked.connect(lambda:self.clear())
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
-    self.addButton.clicked.connect(lambda:self.addFilter())
+    self.addButton.clicked.connect(lambda:self.filterLib() )
     self.allPassLibrary.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLibrary.currentItem().text()))
-    self.applyFilter.clicked.connect(lambda: self.applyallPassFilter())
+    self.allPassLibrary.itemPressed.connect(lambda: self.filterLib(self.allPassLibrary.currentItem().text()))
+    
+    # self.applyFilter.clicknnect(lambda: self.applyallPassFilter())
     self.importButton.clicked.connect(lambda: self.browseFile())
     # self.AllPassLibrary.
 
