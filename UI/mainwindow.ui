@@ -132,6 +132,24 @@
             </item>
             <item>
              <widget class="QCheckBox" name="deleteCheckBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>110</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>160</width>
+                <height>40</height>
+               </size>
+              </property>
               <property name="text">
                <string>Delete By Click</string>
               </property>
@@ -139,6 +157,24 @@
             </item>
             <item>
              <widget class="QCheckBox" name="addConjugateCheckBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>110</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>20</height>
+               </size>
+              </property>
               <property name="text">
                <string>Add Conjugate</string>
               </property>
@@ -202,6 +238,13 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QPushButton" name="importButton">
+              <property name="text">
+               <string>Import Signal</string>
+              </property>
+             </widget>
+            </item>
             <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
@@ -273,7 +316,6 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>

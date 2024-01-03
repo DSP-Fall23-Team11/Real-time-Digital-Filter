@@ -21,6 +21,7 @@ import numpy as np
 from speed import *
 from PlotZ import plotZ
 from scipy.signal import zpk2tf, lfilter,freqz_zpk
+import csv
 
 from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
@@ -56,10 +57,31 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.generatedSignal = Signal()
 
-        
+              
 
-    
+   
 
+
+    def browseFile(self):
+        self.fileName = QFileDialog.getOpenFileName(None,"Open a File","./",filter="Raw Data(*.txt *.csv *.xls)" )
+        if self.fileName[0]:  
+                    self.openFile(self,self.fileName[0])
+                   
+    def openFile(self, path:str,):
+                self.inputSignalGraph.clear()
+                timeArr, amplitudeArr = [],[]
+                length = len(path)
+                fileExtentsion = path[length-3:]
+                # self.fsampling = 1
+                if fileExtentsion == "csv" or fileExtentsion == "txt" or fileExtentsion == "xls":
+                    with open(path, 'r') as file:
+                        csv_data = csv.reader(file, delimiter=',')
+                        for row in csv_data:
+                            timeArr.append(float(row[0]))
+                            amplitudeArr.append(float(row[1]))
+                
+
+     
     def paintEvent(self,event):
         painter = QPainter(self)
         painter.drawPixmap(QPoint(),self.pix)
@@ -358,10 +380,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
-
-
-
-
 def init_connectors(self):
     self.clearAllBtn.clicked.connect(lambda:self.clear())
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
@@ -369,6 +387,7 @@ def init_connectors(self):
     self.addButton.clicked.connect(lambda:self.addFilter())
     self.allPassLibrary.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLibrary.currentItem().text()))
     self.applyFilter.clicked.connect(lambda: self.applyallPassFilter())
+    self.importButton.clicked.connect(lambda: self.browseFile())
     # self.AllPassLibrary.
 
 
