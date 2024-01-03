@@ -46,6 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer_interval = 50  # Set an initial interval in milliseconds (e.g., 100ms)
         self.mouse_inside = False
         self.modifiedSignal=[]
+        self.listofCheckedFilters=[]
         self.allPassComboBox.setEditable(True)
         
         self.x = 0
@@ -234,7 +235,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.allPassLib.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.allPassLib.setAlternatingRowColors(True)
         self.allPassLib.setShowGrid(False)
-        defaultAllPassLib = ["9", "5", "100"]
+        defaultAllPassLib = ["9", "5", "100", "-0.9+2j"]
         self.allPassFilters = []  # Initialize the list
         self.allPassLib.setRowCount(len(defaultAllPassLib)) 
         for index, a in enumerate(defaultAllPassLib):
@@ -246,6 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
             widget = QWidget()
             checkbox = QCheckBox()
             checkbox.setChecked(False)
+            checkbox.stateChanged.connect(lambda state, i=i: self.applyCheckedFilters(i,state))
             layout = QHBoxLayout()
             layout.addWidget(checkbox)
             layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -271,29 +273,19 @@ class MainWindow(QtWidgets.QMainWindow):
             checkbox = QCheckBox()
             checkbox.setChecked(False)
             layout = QHBoxLayout()
+            checkbox.stateChanged.connect(lambda state, i=i: self.applyCheckedFilters(i,state))
             layout.addWidget(checkbox)
             layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.setContentsMargins(0, 0, 0, 0)
             widget.setLayout(layout)
             self.allPassLib.setCellWidget(i, 1, widget)
-   
-
-    # def filterLib(self, text):
-    #     # text = self.allPassComboBox.currentText()
-    #     if self.allPassComboBox.findText(text) == -1:
-    #         self.allPassComboBox.addItem(text)
-    #         filter_value = complex(text)
-    #         self.allPassLib.addItem(str(filter_value))
-    #         # self.allPassLibrary.addItem(str(filter_value))
-    #         self.allPassFilters.append(str(filter_value))
-    #         self.allPassFilters.append(str(filter_value))
-    #         row = self.allPassLib.rowCount()
-    #         self.allPassLib.insertRow(row)
-    #         item = QTableWidgetItem(str(filter_value))
-    #         self.allPassLib.setItem(row, 0, item)
-    #         print("CHIPPI CHIPPI CHAPPA CHAPPA",self.allPassFilters)
             
-
+    def applyCheckedFilters(self, row, state):
+        if state == QtCore.Qt.Checked:
+            self.listofCheckedFilters.append(complex(self.allPassLib.item(row, 0).text()))     
+        else:
+            self.listofCheckedFilters.remove(complex(self.allPassLib.item(row, 0).text()))
+        print(self.listofCheckedFilters)
 
     def filter_real_time_signal(self, input_signal,allPassZero=None,allPassPole=None):
         # Use the ZeroPole filter equation to filter the input signal
@@ -312,37 +304,47 @@ class MainWindow(QtWidgets.QMainWindow):
         
               
     
-    def plotAllPassResponse(self,a):
-        a = complex(a)
+    def plotAllPassResponse(self):
+        # a = complex(a)
+        listofFilters = self.listofCheckedFilters
         self.allPassResponse.clear()
         x_values = np.linspace(0, np.pi, 1000)
         yAxis = []
+        finalResponse = 0
         for xValue in x_values:
-            Hap = (np.exp(-1j * xValue) - np.conjugate(a)) / (1 - a * np.exp(-1j * xValue))
-            yAxis.append(np.angle(Hap))         
-        self.allPassResponse.plot(x_values, yAxis, pen="b")
+                finalResponse = 0  # Reset finalResponse for each frequency point
+                for filter in listofFilters:
+                    Hap = (np.exp(-1j * xValue) - np.conjugate(filter)) / (1 - filter * np.exp(-1j * xValue))
+                    finalResponse += Hap
+                yAxis.append(np.angle(finalResponse))
+        finalResponse /= len(listofFilters)     
+        print(np.abs(finalResponse))
+        self.allPassResponse.plot(x_values, yAxis[-1000:], pen="b")
         # self.modifiedSignal= self.generatedSignal.yAxis*np.exp(1j * np.angle(yAxis))
         zeros = [complex(z[0], z[1]) for z in self.zeros]
         poles = [complex(p[0], p[1]) for p in self.poles]
-        zeroF = 1/np.conj(a)
-        poleF = a
-        zeros.append(zeroF)
-        poles.append(poleF)
+        # zeroF = 1/np.conj(a)
+        # poleF = a
+        for idx, a in enumerate(listofFilters):
+            zeroF = 1/np.conj(a)
+            poleF = a
+            zeros.append(zeroF)
+            poles.append(poleF)
         w,response = freqz_zpk(zeros,poles,1)
         magnitude = 20 * np.log10(np.abs(response))
         phase = np.unwrap(np.angle(response))
-        widgets = [self.magGraphWidget , self.phaseGraphWidget]
-        data = [magnitude,phase]
-        titles = ["Magnitude Response" , "Phase Response"]
+        widgets =  [ self.phaseGraphWidget]
+        data = [phase]
+        titles = [ "Phase Response"]
         for index ,widget in enumerate(widgets):
             widget.canvas.axes.clear()
             widget.canvas.axes.plot(w , data[index] , color ="b")
             widget.canvas.axes.set_title(titles[index])    
             widget.canvas.draw()
-        self.filteredSignalGraph.clear()
-        # self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
-        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
-        #lets apply on signal!
+        # self.filteredSignalGraph.clear()
+        # # self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
+        # self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
+        # #lets apply on signal!
 
 
 
@@ -457,10 +459,10 @@ def init_connectors(self):
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
     self.addButton.clicked.connect(lambda:self.filterLib(self.allPassComboBox.currentText()) )
-    self.allPassLib.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLib.currentItem().text()))
+    # self.allPassLib.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLib.currentItem().text()))
     self.allPassLib.itemPressed.connect(lambda: self.allPassLib.currentItem().text())
     
-    # self.applyFilter.clicknnect(lambda: self.applyallPassFilter())
+    self.applyFilter.clicked.connect(lambda: self.plotAllPassResponse())
     self.importButton.clicked.connect(lambda: self.browseFile())
     # self.AllPassLibrary.
 
