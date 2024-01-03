@@ -31,6 +31,7 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi('UI/mainwindow.ui', self)
         self.apply_stylesheet("ManjaroMix.qss")
         # self.showMaximized()
+        self.allPassFilters = []
         init_connectors(self)
         self.initalize()
         self.ZPlotter = plotZ(self.poles ,self.zeros, self.scale) 
@@ -58,6 +59,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.generatedSignal = Signal()
 
         self.initalizeAllPassLibrary()
+        
         
    
 
@@ -224,20 +226,73 @@ class MainWindow(QtWidgets.QMainWindow):
     # def addFilter(self):
     #     filter_value = complex(self.allPassComboBox.currentText())
     #     self.allPassLibrary.addItem(str(filter_value))
-    
     def initalizeAllPassLibrary(self):
-        defaultAllPassLib = ['0.5','5','1','100']
+        self.allPassLib.setColumnCount(2)
+        self.allPassLib.setHorizontalHeaderLabels(["Filter", "Apply"])
+        self.allPassLib.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.allPassLib.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.allPassLib.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.allPassLib.setAlternatingRowColors(True)
+        self.allPassLib.setShowGrid(False)
+        defaultAllPassLib = ["9", "5", "100"]
+        self.allPassFilters = []  # Initialize the list
+        self.allPassLib.setRowCount(len(defaultAllPassLib)) 
         for index, a in enumerate(defaultAllPassLib):
             filter_value = complex(a)
-            self.allPassLibrary.addItem(str(filter_value))
-    
+            item = QTableWidgetItem(str(filter_value))
+            self.allPassFilters.append(str(filter_value)) 
+            self.allPassLib.setItem(index, 0, item)
+        for i in range(self.allPassLib.rowCount()):
+            widget = QWidget()
+            checkbox = QCheckBox()
+            checkbox.setChecked(False)
+            layout = QHBoxLayout()
+            layout.addWidget(checkbox)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.setContentsMargins(0, 0, 0, 0)
+            widget.setLayout(layout)
+            self.allPassLib.setCellWidget(i, 1, widget)
+   
 
-    def filterLib(self):
-        text = self.allPassComboBox.currentText()
+
+    def filterLib(self, text):
+        # text = self.allPassComboBox.currentText()
         if self.allPassComboBox.findText(text) == -1:
             self.allPassComboBox.addItem(text)
             filter_value = complex(text)
-            self.allPassLibrary.addItem(str(filter_value))
+            self.allPassFilters.append(str(filter_value))
+            row = self.allPassLib.rowCount()
+            self.allPassLib.insertRow(row)
+            item = QTableWidgetItem(str(filter_value))
+            self.allPassLib.setItem(row, 0, item)
+            print("CHIPPI CHIPPI CHAPPA CHAPPA", self.allPassFilters)
+        for i in range(self.allPassLib.rowCount()):
+            widget = QWidget()
+            checkbox = QCheckBox()
+            checkbox.setChecked(False)
+            layout = QHBoxLayout()
+            layout.addWidget(checkbox)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.setContentsMargins(0, 0, 0, 0)
+            widget.setLayout(layout)
+            self.allPassLib.setCellWidget(i, 1, widget)
+   
+
+    # def filterLib(self, text):
+    #     # text = self.allPassComboBox.currentText()
+    #     if self.allPassComboBox.findText(text) == -1:
+    #         self.allPassComboBox.addItem(text)
+    #         filter_value = complex(text)
+    #         self.allPassLib.addItem(str(filter_value))
+    #         # self.allPassLibrary.addItem(str(filter_value))
+    #         self.allPassFilters.append(str(filter_value))
+    #         self.allPassFilters.append(str(filter_value))
+    #         row = self.allPassLib.rowCount()
+    #         self.allPassLib.insertRow(row)
+    #         item = QTableWidgetItem(str(filter_value))
+    #         self.allPassLib.setItem(row, 0, item)
+    #         print("CHIPPI CHIPPI CHAPPA CHAPPA",self.allPassFilters)
+            
 
 
     def filter_real_time_signal(self, input_signal,allPassZero=None,allPassPole=None):
@@ -401,14 +456,15 @@ def init_connectors(self):
     self.clearAllBtn.clicked.connect(lambda:self.clear())
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
-    self.addButton.clicked.connect(lambda:self.filterLib() )
-    self.allPassLibrary.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLibrary.currentItem().text()))
-    self.allPassLibrary.itemPressed.connect(lambda: self.filterLib(self.allPassLibrary.currentItem().text()))
+    self.addButton.clicked.connect(lambda:self.filterLib(self.allPassComboBox.currentText()) )
+    self.allPassLib.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLib.currentItem().text()))
+    self.allPassLib.itemPressed.connect(lambda: self.allPassLib.currentItem().text())
     
     # self.applyFilter.clicknnect(lambda: self.applyallPassFilter())
     self.importButton.clicked.connect(lambda: self.browseFile())
     # self.AllPassLibrary.
 
+   
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

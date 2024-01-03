@@ -376,43 +376,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QListWidget" name="allPassLibrary">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>110</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Filters to be Applied </string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListWidget" name="allPassLibrary_2">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>110</height>
-          </size>
-         </property>
-        </widget>
+        <widget class="QTableWidget" name="allPassLib"/>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
