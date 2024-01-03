@@ -221,6 +221,12 @@
              <height>300</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: #e0e0e0;
+    border: 2px solid #888888;
+                border-radius: 10px;
+                padding: 10px;</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -316,6 +322,7 @@
          <property name="font">
           <font>
            <pointsize>12</pointsize>
+           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
