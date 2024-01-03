@@ -52,7 +52,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.x = 0
         self.y = 0
         self.speed = 0
-
+        self.zeroA= []
+        self.poleA= []
         self.viewBox =self.inputSignalGraph.getViewBox()
         self.viewBox1 =self.filteredSignalGraph.getViewBox()
         self.initalizeGraph()
@@ -287,15 +288,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.listofCheckedFilters.remove(complex(self.allPassLib.item(row, 0).text()))
         print(self.listofCheckedFilters)
 
-    def filter_real_time_signal(self, input_signal,allPassZero=None,allPassPole=None):
+    def filter_real_time_signal(self, input_signal,zeros=None,poles=None):
         # Use the ZeroPole filter equation to filter the input signal
         # print(self.zeros)
-        zeros = [complex(z[0], z[1]) for z in self.zeros]
-        poles = [complex(p[0], p[1]) for p in self.poles]
-        if allPassZero is not None and allPassPole is not None:
-            zeros.append(allPassZero)
-            poles.append(allPassPole)
-
         # zeros_poly = np.poly(np.array(self.zeros)[:, 0] + 1j * np.array(self.zeros)[:, 1])
         # filtered_signal = lfilter([1], zeros_poly, input_signal, axis=-1, zi=None)
         numerator, denominator = zpk2tf(zeros,poles,1)
@@ -330,6 +325,8 @@ class MainWindow(QtWidgets.QMainWindow):
             poleF = a
             zeros.append(zeroF)
             poles.append(poleF)
+        self.zeroA= zeros
+        self.poleA= poles
         w,response = freqz_zpk(zeros,poles,1)
         magnitude = 20 * np.log10(np.abs(response))
         phase = np.unwrap(np.angle(response))
@@ -341,8 +338,8 @@ class MainWindow(QtWidgets.QMainWindow):
             widget.canvas.axes.plot(w , data[index] , color ="b")
             widget.canvas.axes.set_title(titles[index])    
             widget.canvas.draw()
-        # self.filteredSignalGraph.clear()
-        # # self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeroF,poleF)
+        self.filteredSignalGraph.clear()
+        self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeros,poles)
         # self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
         # #lets apply on signal!
 
@@ -428,7 +425,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.inputSignalGraph.clear()
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
-        filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis)
+        filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
         magnitude = np.abs(filteredSignal)
         self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal,pen="r")
         # self.filter_real_time_signal(self.generatedSignal.yAxis)
