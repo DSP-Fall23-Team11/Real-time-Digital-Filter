@@ -22,7 +22,8 @@ from speed import *
 from PlotZ import plotZ
 from scipy.signal import zpk2tf, lfilter,freqz_zpk
 import csv
-
+import numpy as np
+from scipy import signal
 from Signal import Signal
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -236,7 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.allPassLib.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.allPassLib.setAlternatingRowColors(True)
         self.allPassLib.setShowGrid(False)
-        defaultAllPassLib = ["9", "5", "100", "-0.9+2j"]
+        defaultAllPassLib = ["-0.9", "-0.2", "0.9", "-0.9+2j"]
         self.allPassFilters = []  # Initialize the list
         self.allPassLib.setRowCount(len(defaultAllPassLib)) 
         for index, a in enumerate(defaultAllPassLib):
@@ -289,33 +290,41 @@ class MainWindow(QtWidgets.QMainWindow):
         print(self.listofCheckedFilters)
 
     def filter_real_time_signal(self, input_signal,zeros=None,poles=None):
-        # Use the ZeroPole filter equation to filter the input signal
-        # print(self.zeros)
-        # zeros_poly = np.poly(np.array(self.zeros)[:, 0] + 1j * np.array(self.zeros)[:, 1])
-        # filtered_signal = lfilter([1], zeros_poly, input_signal, axis=-1, zi=None)
-        numerator, denominator = zpk2tf(zeros,poles,1)
-        filtered_signal_y = np.real(lfilter(numerator, denominator, input_signal.copy()))
-        return filtered_signal_y
+        zeros = [complex(x[0], x[1]) for x in zeros]
+        poles = [complex(x[0], x[1]) for x in poles]
+        # Transfer Function
+        numerator, denominator = signal.zpk2tf(zeros, poles, 1)
+        filtered_audio = signal.lfilter(numerator, denominator, input_signal)
+        return filtered_audio
         
               
     
+    def plotSelectedResponse(self,text):
+        self.allPassResponse.clear()
+        a_coeff = complex(text)
+        yAxis = []
+        xAxis = np.linspace(0, np.pi, 1000)
+
+        for xValue in xAxis:
+            Hap = (np.exp(-1j * xValue) - np.conjugate(a_coeff)) / (1 - a_coeff * np.exp(-1j * xValue))
+            yAxis.append(np.angle(Hap))
+
+        self.allPassResponse.plot(xAxis, yAxis, pen="b")
+    def plotSelectedResponse(self,text):
+        self.allPassResponse.clear()
+        a_coeff = complex(text)
+        yAxis = []
+        xAxis = np.linspace(0, np.pi, 1000)
+
+        for xValue in xAxis:
+            Hap = (np.exp(-1j * xValue) - np.conjugate(a_coeff)) / (1 - a_coeff * np.exp(-1j * xValue))
+            yAxis.append(np.angle(Hap))
+
+        self.allPassResponse.plot(xAxis, yAxis, pen="b")    
+
     def plotAllPassResponse(self):
         # a = complex(a)
         listofFilters = self.listofCheckedFilters
-        self.allPassResponse.clear()
-        x_values = np.linspace(0, np.pi, 1000)
-        yAxis = []
-        finalResponse = 0
-        for xValue in x_values:
-                finalResponse = 0  # Reset finalResponse for each frequency point
-                for filter in listofFilters:
-                    Hap = (np.exp(-1j * xValue) - np.conjugate(filter)) / (1 - filter * np.exp(-1j * xValue))
-                    finalResponse += Hap
-                yAxis.append(np.angle(finalResponse))
-        finalResponse /= len(listofFilters)     
-        print(np.abs(finalResponse))
-        self.allPassResponse.plot(x_values, yAxis[-1000:], pen="b")
-        # self.modifiedSignal= self.generatedSignal.yAxis*np.exp(1j * np.angle(yAxis))
         zeros = [complex(z[0], z[1]) for z in self.zeros]
         poles = [complex(p[0], p[1]) for p in self.poles]
         # zeroF = 1/np.conj(a)
@@ -338,11 +347,6 @@ class MainWindow(QtWidgets.QMainWindow):
             widget.canvas.axes.plot(w , data[index] , color ="b")
             widget.canvas.axes.set_title(titles[index])    
             widget.canvas.draw()
-        self.filteredSignalGraph.clear()
-        self.modifiedSignal=self.filter_real_time_signal(self.generatedSignal.yAxis,zeros,poles)
-        # self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.modifiedSignal,pen="r")
-        # #lets apply on signal!
-
 
 
     def delete(self, pos, draw=True):
@@ -425,9 +429,11 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.inputSignalGraph.clear()
         self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
+        self.zeroA = self.zeros
+        self.poleA = self.poles
         filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
         magnitude = np.abs(filteredSignal)
-        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal,pen="r")
+        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal.real,pen="r")
         # self.filter_real_time_signal(self.generatedSignal.yAxis)
 
 
@@ -456,7 +462,7 @@ def init_connectors(self):
     self.clearAllPolesBtn.clicked.connect(lambda:self.clearAllPoles())
     self.clearAllZerosBtn.clicked.connect(lambda:self.clearAllZeros())
     self.addButton.clicked.connect(lambda:self.filterLib(self.allPassComboBox.currentText()) )
-    # self.allPassLib.itemPressed.connect(lambda: self.plotAllPassResponse(self.allPassLib.currentItem().text()))
+    self.allPassLib.itemPressed.connect(lambda: self.plotSelectedResponse(self.allPassLib.currentItem().text()))
     self.allPassLib.itemPressed.connect(lambda: self.allPassLib.currentItem().text())
     
     self.applyFilter.clicked.connect(lambda: self.plotAllPassResponse())
