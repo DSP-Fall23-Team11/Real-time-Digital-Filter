@@ -327,6 +327,8 @@ class MainWindow(QtWidgets.QMainWindow):
             poles.append(poleF)
         self.zeroA= zeros
         self.poleA= poles
+        print(self.zeroA,"mourad1")
+        print(self.poleA,"mourad2")
         w,response = freqz_zpk(zeros,poles,1)
         magnitude = 20 * np.log10(np.abs(response))
         phase = np.unwrap(np.angle(response))
@@ -428,7 +430,6 @@ class MainWindow(QtWidgets.QMainWindow):
         filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
         magnitude = np.abs(filteredSignal)
         self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal,pen="r")
-        # self.filter_real_time_signal(self.generatedSignal.yAxis)
 
 
     def eventFilter(self, source, event):
