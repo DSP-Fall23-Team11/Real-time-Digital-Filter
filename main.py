@@ -227,9 +227,6 @@ class MainWindow(QtWidgets.QMainWindow):
           #  self.statusBar.showMessage(f"Zero is added to ({round(pos[0], 2)}, {round(pos[1], 2)}). Current case: {'Divergent' if len(self.zeros)>len(self.poles) else 'Convergent'}{' to some constant' if len(self.zeros)==len(self.poles) else ''}. P:{int(len(self.poles))}, Z:{int(len(self.zeros))}")
         if draw: self.plot()   
 
-    # def addFilter(self):
-    #     filter_value = complex(self.allPassComboBox.currentText())
-    #     self.allPassLibrary.addItem(str(filter_value))
     def initalizeAllPassLibrary(self):
         self.allPassLib.setColumnCount(2)
         self.allPassLib.setHorizontalHeaderLabels(["Filter", "Apply"])
@@ -261,7 +258,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def filterLib(self, text):
-        # text = self.allPassComboBox.currentText()
         if self.allPassComboBox.findText(text) == -1:
             self.allPassComboBox.addItem(text)
             filter_value = complex(text)
@@ -270,7 +266,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.allPassLib.insertRow(row)
             item = QTableWidgetItem(str(filter_value))
             self.allPassLib.setItem(row, 0, item)
-            print("CHIPPI CHIPPI CHAPPA CHAPPA", self.allPassFilters)
+            # print("CHIPPI CHIPPI CHAPPA CHAPPA", self.allPassFilters)
         for i in range(self.allPassLib.rowCount()):
             widget = QWidget()
             checkbox = QCheckBox()
@@ -324,12 +320,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.allPassResponse.plot(xAxis, yAxis, pen="b")    
 
     def plotAllPassResponse(self):
-        # a = complex(a)
         listofFilters = self.listofCheckedFilters
         zeros = [complex(z[0], z[1]) for z in self.zeros]
         poles = [complex(p[0], p[1]) for p in self.poles]
-        # zeroF = 1/np.conj(a)
-        # poleF = a
         for idx, a in enumerate(listofFilters):
             zeroF = 1/np.conj(a)
             poleF = a
