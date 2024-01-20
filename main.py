@@ -101,14 +101,31 @@ class MainWindow(QtWidgets.QMainWindow):
     def processZPlotting(self):
       # TODO Call plotz
       # TODO Set labels for the mag / phase plots
-        magnitudePlotData = []
-        phasePlotData = []
-        magnitudePlotData = self.ZPlotter.plot_magnitude_response()
-        phasePlotData = self.ZPlotter.plot_phase_response()
-        widgets = [self.magGraphWidget , self.phaseGraphWidget]
-        data = [magnitudePlotData,phasePlotData]
+        zeros = [complex(z[0], z[1]) for z in self.zeros]
+        poles = [complex(p[0], p[1]) for p in self.poles]
+        w,response = freqz_zpk(zeros,poles,1)
+        magnitude = 20 * np.log10(np.abs(response))
+        phase = np.unwrap(np.angle(response))
+        widgets =  [ self.magGraphWidget,self.phaseGraphWidget]
+        data = [magnitude,phase]
         titles= ["Magnitude Response" , "Phase Response"]
-        self.responsePlot(widgets,data,titles)
+        for index ,widget in enumerate(widgets):
+            widget.canvas.axes.clear()
+            widget.canvas.axes.plot(w , data[index] , color ="b")
+            widget.canvas.axes.set_title(titles[index])    
+            widget.canvas.draw()
+
+
+
+
+        # magnitudePlotData = []
+        # phasePlotData = []
+        # magnitudePlotData = self.ZPlotter.plot_magnitude_response()
+        # phasePlotData = self.ZPlotter.plot_phase_response()
+        # widgets = [self.magGraphWidget , self.phaseGraphWidget]
+        # data = [magnitudePlotData,phasePlotData]
+        # titles= ["Magnitude Response" , "Phase Response"]
+        # self.responsePlot(widgets,data,titles)
 
     
     def initalize(self):
@@ -339,9 +356,9 @@ class MainWindow(QtWidgets.QMainWindow):
         w,response = freqz_zpk(zeros,poles,1)
         magnitude = 20 * np.log10(np.abs(response))
         phase = np.unwrap(np.angle(response))
-        widgets =  [ self.phaseGraphWidget]
-        data = [phase]
-        titles = [ "Phase Response"]
+        widgets =  [ self.phaseGraphWidget, self.magGraphWidget]
+        data = [phase, magnitude]
+        titles = [ "Phase Response","Magnitude Response"]
         for index ,widget in enumerate(widgets):
             widget.canvas.axes.clear()
             widget.canvas.axes.plot(w , data[index] , color ="b")
