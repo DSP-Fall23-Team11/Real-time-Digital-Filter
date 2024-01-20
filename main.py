@@ -41,6 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMouseTracking(True)
         self.padWidgetGraph.setMouseTracking(True)
         self.padWidgetGraph.installEventFilter(self)
+        self.importButton.hide()
         self.last_frame = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.calculate_speed)
