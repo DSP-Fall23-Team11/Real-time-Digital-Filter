@@ -63,7 +63,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.generatedSignal = Signal()
 
         self.initalizeAllPassLibrary()
-        
+        ###################
+        self.pauseFlag1 = False
+        self.xAxis = [0]
+        self.yAxis = [0]
         
    
 
@@ -71,22 +74,61 @@ class MainWindow(QtWidgets.QMainWindow):
     def browseFile(self):
         self.fileName = QFileDialog.getOpenFileName(None,"Open a File","./",filter="Raw Data(*.txt *.csv *.xls)" )
         if self.fileName[0]:  
-                    self.openFile(self,self.fileName[0])
+                    self.openFile(self.fileName[0])
                    
-    def openFile(self, path:str,):
+    def openFile(self, path:str):
                 self.inputSignalGraph.clear()
                 timeArr, amplitudeArr = [],[]
                 length = len(path)
                 fileExtentsion = path[length-3:]
-                # self.fsampling = 1
                 if fileExtentsion == "csv" or fileExtentsion == "txt" or fileExtentsion == "xls":
                     with open(path, 'r') as file:
                         csv_data = csv.reader(file, delimiter=',')
                         for row in csv_data:
                             timeArr.append(float(row[0]))
                             amplitudeArr.append(float(row[1]))
-                
+                self.signalInitialization(self.inputSignalGraph,timeArr,amplitudeArr)            
+    def signalInitialization(self,choosenGraph,timeArr, amplitudeArr):       
+            self.graph = choosenGraph.plot(
+                    name="Channel "+str(1))
+            choosenGraph.showGrid(x= True, y= True)
+            maxTime,minTime,maxAmp,minAmp = 0,0,0,0
+            if len(timeArr):
+                if len(timeArr)> maxTime:
+                    maxTime = len(timeArr)
+            if len(timeArr):
+                if len(timeArr )< minTime:
+                    minTime = len(timeArr)
+            if len(amplitudeArr):
+                if max(amplitudeArr ) > maxAmp:
+                    maxAmp = max(amplitudeArr)           
+            if len(amplitudeArr):
+                if min(amplitudeArr ) < minAmp:
+                    minAmp = min(amplitudeArr)           
+        
+            choosenGraph.plotItem.setLimits(
+             xMin=minTime, xMax=maxTime, yMin=minAmp, yMax=maxAmp+0.2     
+            )
+            choosenGraph.setYRange(minAmp,maxAmp)
+            self.pauseFlag1 = False
+            self.pointsPlotted1 = 0
+            self.startTime1 = QtCore.QTimer()
+            self.startTime1.setInterval(50)
+            self.startTime1.timeout.connect(lambda:self.signalPlotting(choosenGraph,timeArr,amplitudeArr))
+            self.startTime1.start()      
 
+    def  signalPlotting(self,choosenGraph,timeArr,amplitudeArr):
+           if len(amplitudeArr)>0:
+                self.xAxis[0] = timeArr[:self.pointsPlotted1]
+                self.yAxis[0] = amplitudeArr[:self.pointsPlotted1]
+           self.pointsPlotted1 += 5
+           if(len(self.xAxis[0]) >10 ):
+                choosenGraph.setXRange(self.xAxis[0][-1]-0.1,self.xAxis[0][-1])
+                self.filteredSignalGraph.setXRange(self.xAxis[0][-1]-0.1,self.xAxis[0][-1])
+           if len(amplitudeArr)>0:
+                if len(timeArr) > self.pointsPlotted1:
+                    self.graph.setData(self.xAxis[0], self.yAxis[0]) 
+           self.plotSignal(False)         
      
     def paintEvent(self,event):
         painter = QPainter(self)
@@ -416,20 +458,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.viewBox1.setXRange(0, 0.2)
         self.viewBox1.setYRange(-300, 300)
         self.filteredSignalGraph.enableAutoRange(axis = self.viewBox1.YAxis)
-            
-    def plotSignal(self):
-        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999):
+    
+    def plotSignal(self,isPad=True):
+        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999) and isPad == True:
             self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
             self.viewBox1.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
-        
-        self.inputSignalGraph.clear()
-        self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
+        if (isPad == True):
+            self.inputSignalGraph.clear()
+            self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],self.generatedSignal.yAxis,pen="b")
         self.zeroA = self.zeros
         self.poleA = self.poles
-        filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
-        magnitude = np.abs(filteredSignal)
-        self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal.real,pen="r")
-        # self.filter_real_time_signal(self.generatedSignal.yAxis)
+        if(isPad == True):
+              filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
+              self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal.real,pen="r")
+        elif(len(self.yAxis[0])>10):
+              filteredSignal = self.filter_real_time_signal(self.yAxis[0],self.zeroA,self.poleA)    
+              self.filteredSignalGraph.plot(self.xAxis[0],filteredSignal.real,pen="r")
 
 
     def eventFilter(self, source, event):
