@@ -41,7 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMouseTracking(True)
         self.padWidgetGraph.setMouseTracking(True)
         self.padWidgetGraph.installEventFilter(self)
-        self.importButton.hide()
+       # self.importButton.hide()
         self.last_frame = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.calculate_speed)
@@ -415,6 +415,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.viewBox.setYRange(-300, 300)
         self.viewBox1.setXRange(0, 0.2)
         self.viewBox1.setYRange(-300, 300)
+        self.filteredSignalGraph.enableAutoRange(axis = self.viewBox1.YAxis)
             
     def plotSignal(self):
         if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999):
