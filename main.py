@@ -113,7 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.pauseFlag1 = False
             self.pointsPlotted1 = 0
             self.startTime1 = QtCore.QTimer()
-            self.startTime1.setInterval(50)
+            self.startTime1.setInterval(90)
             self.startTime1.timeout.connect(lambda:self.signalPlotting(choosenGraph,timeArr,amplitudeArr))
             self.startTime1.start()      
 
@@ -329,8 +329,10 @@ class MainWindow(QtWidgets.QMainWindow):
         print(self.listofCheckedFilters)
 
     def filter_real_time_signal(self, input_signal,zeros=None,poles=None):
+        print(zeros , "before")
         zeros = [complex(x[0], x[1]) for x in zeros]
         poles = [complex(x[0], x[1]) for x in poles]
+        print(zeros,"after")
         # Transfer Function
         numerator, denominator = signal.zpk2tf(zeros, poles, 1)
         filtered_audio = signal.lfilter(numerator, denominator, input_signal)
