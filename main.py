@@ -337,7 +337,34 @@ class MainWindow(QtWidgets.QMainWindow):
         numerator, denominator = signal.zpk2tf(zeros, poles, 1)
         filtered_audio = signal.lfilter(numerator, denominator, input_signal)
         return filtered_audio
-        
+
+
+    def plotSignal(self,isPad=True):
+        if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999) and isPad == True:
+            self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
+            self.viewBox1.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
+        if (isPad == True):
+            self.inputSignalGraph.clear()
+            real_values_list = [x.real if isinstance(x, complex) else x for x in self.generatedSignal.yAxis]
+            self.inputSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],real_values_list,pen="b")
+        self.zeroA = self.zeros
+        self.poleA = self.poles
+        if(isPad == True):
+              filterOrder = self.filter_order(self.zeroA,self.poleA)
+              if(len(self.generatedSignal.yAxis)<=filterOrder):
+                       filteredSignal = self.filter_real_time_signal(self.generatedSignal.yAxis,self.zeroA,self.poleA)
+                       self.RealTimePts = filteredSignal
+                       self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],filteredSignal.real,pen="r")
+              else:
+                       tmpPoints = self.filter_real_time_signal(self.generatedSignal.yAxis[len(self.generatedSignal.yAxis)-filterOrder:],self.zeroA,self.poleA) 
+                       tmpData = self.generatedSignal.yAxis
+                       tmpData[len(self.generatedSignal.yAxis)-filterOrder:] = tmpPoints         
+                       real_values_list = [x.real if isinstance(x, complex) else x for x in tmpData]
+                       self.generatedSignal.yAxis = real_values_list
+                       self.filteredSignalGraph.plot(self.generatedSignal.xAxis[0:len(self.generatedSignal.yAxis)],real_values_list,pen="r")
+        elif(len(self.yAxis[0])>10):
+              filteredSignal = self.filter_real_time_signal(self.yAxis[0],self.zeroA,self.poleA)    
+              self.filteredSignalGraph.plot(self.xAxis[0],filteredSignal.real,pen="r")    
               
     
     def plotSelectedResponse(self,text):
@@ -460,7 +487,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.viewBox1.setXRange(0, 0.2)
         self.viewBox1.setYRange(-300, 300)
         self.filteredSignalGraph.enableAutoRange(axis = self.viewBox1.YAxis)
+    def filter_order(self,zeros, poles):
+        numerator_order = len(zeros)
+        denominator_order = len(poles)
+        
+        return max(numerator_order, denominator_order)
     
+
+
     def plotSignal(self,isPad=True):
         if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999) and isPad == True:
             self.viewBox.setXRange(self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)]-.199999999999, self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)])
@@ -476,8 +510,6 @@ class MainWindow(QtWidgets.QMainWindow):
         elif(len(self.yAxis[0])>10):
               filteredSignal = self.filter_real_time_signal(self.yAxis[0],self.zeroA,self.poleA)    
               self.filteredSignalGraph.plot(self.xAxis[0],filteredSignal.real,pen="r")
-
-
     def eventFilter(self, source, event):
         if source == self.padWidgetGraph:
             if event.type() == QtCore.QEvent.Enter: 
