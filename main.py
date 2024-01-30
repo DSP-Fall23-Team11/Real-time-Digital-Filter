@@ -338,6 +338,11 @@ class MainWindow(QtWidgets.QMainWindow):
         filtered_audio = signal.lfilter(numerator, denominator, input_signal)
         return filtered_audio
 
+    def filter_order(self,zeros, poles):
+        numerator_order = len(zeros)
+        denominator_order = len(poles)
+        
+        return max(numerator_order, denominator_order)
 
     def plotSignal(self,isPad=True):
         if (self.generatedSignal.xAxis[len(self.generatedSignal.yAxis)] > 0.1999999999999999) and isPad == True:
@@ -487,11 +492,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.viewBox1.setXRange(0, 0.2)
         self.viewBox1.setYRange(-300, 300)
         self.filteredSignalGraph.enableAutoRange(axis = self.viewBox1.YAxis)
-    def filter_order(self,zeros, poles):
-        numerator_order = len(zeros)
-        denominator_order = len(poles)
-        
-        return max(numerator_order, denominator_order)
+
     
 
 
