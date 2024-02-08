@@ -14,8 +14,8 @@ https://github.com/DSP-Fall23-Team11/DSP-task6/assets/83988379/5e7776e7-e54f-4e7
 
 - **Interactive Plotting:** Users can place zeros and poles on the z-plane.
 - **Dynamic Modifications:** Zeros/poles can be modified by dragging them.
-- **Deletion:** Clicking on a zero or pole allows users to delete it.
-- **Clear Options:** Users can clear all zeros, all poles, or clear everything on the plot.
+- **Deletion:** Clicking on a zero or pole allows users to delete it if delete by click mode is activated.
+- **Clear Options:** Users can clear all zeros, all poles, or clear everything on the Z-plane.
 - **Conjugates:** Option to add or remove conjugates for complex elements.
 
 ### Frequency Response Plot
@@ -26,13 +26,12 @@ https://github.com/DSP-Fall23-Team11/DSP-task6/assets/83988379/5e7776e7-e54f-4e7
 ### Real-time Filtering
 
 - **Lengthy Signal Processing:** Apply the filter to a signal with a minimum of 10,000 points in real-time.
-- **Temporal Control:** Adjustable speed/temporal-resolution via a slider.
 - **Mouse Input:** Users can input real-time signals by moving the mouse, with the speed affecting signal frequencies.
 
 ### Phase Correction with All-Pass Filters
 
 - **All-Pass Filter Library:** Visualize and select from a library of all-pass filters.
-- **Custom All-Pass:** Users can create their own all-pass filters by specifying "a," and the website calculates its phase response.
+- **Custom All-Pass:** Users can create their own all-pass filters by specifying "a," and the application calculates its phase response.
 - **Enable/Disable Controls:** Users can toggle the added all-pass elements.
 
 ## Examples
@@ -47,11 +46,44 @@ Explore the functionality with the provided examples:
 To get started with the application, follow these steps:
 
 1. Clone the repository.
-2. Open the `index.html` file in your preferred web browser.
+2. Run the following command
 
-## Notes
+```
+pip install -r requirements.txt
 
-- Examples are provided for reference, and you are encouraged to implement your own design.
-- Consider user-friendliness in your design to ensure ease of use for all users.
+```
 
+3. Run main.py
+
+## Contributors
+
+<table>
+  <tr>
+    <td align="center">
+    <a href="https://github.com/Youssef-Ashraf71" target="_black">
+    <img src="https://avatars.githubusercontent.com/u/83988379?v=4" width="150px;" alt="Youssef Ashraf"/>
+    <br />
+    <sub><b>Youssef Ashraf</b></sub></a>
+    </td>
+    <td align="center">
+    <a href="https://github.com/mouradmagdy" target="_black">
+    <img src="https://avatars.githubusercontent.com/u/89527761?v=4" width="150px;" alt="Mourad Magdy"/>
+    <br />
+    <sub><b>Mourad Magdy</b></sub></a>
+    <td align="center">
+    <a href="https://github.com/ZiadMeligy" target="_black">
+    <img src="https://avatars.githubusercontent.com/u/89343979?v=4" width="150px;" alt="Ziad Meligy"/>
+    <br />
+    <sub><b>Ziad Meligy</b></sub></a>
+    </td>
+    </td>
+    <td align="center">
+    <a href="https://github.com/Maskuerade" target="_black">
+    <img src="https://avatars.githubusercontent.com/u/106713214?v=4" width="150px;" alt="Mariam Ahmed"/>
+    <br />
+    <sub><b>Mariam Ahmed</b></sub></a>
+    </td>
+      </tr>
+ </table>
+ 
 Feel free to contribute, report issues, or suggest enhancements. Happy filtering!
