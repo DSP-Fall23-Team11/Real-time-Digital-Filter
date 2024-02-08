@@ -28,12 +28,10 @@ class plotZ:
                 else: a /= 1e-400
             points.append(a)
         return [arange(0, 1*pi, sensitivity), points]
-    
     def phase_amount(self, x, y):
         range_x = x[0] - y[0]
         range_y = x[1] - y[1]
         return arctan(range_y/range_x)
-    
     def plot_phase_response(self, sensitivity=0.005, color="r"):
         points = []
         for point in arange(0, 1*pi, sensitivity):
